@@ -1,0 +1,74 @@
+{
+  "SessionStart": [
+    {
+      "matcher": "",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "sh \"${DEVIN_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/bin/hook.sh\" SessionStart",
+          "timeout": 10
+        }
+      ]
+    }
+  ],
+  "UserPromptSubmit": [
+    {
+      "matcher": "",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "sh \"${DEVIN_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/bin/hook.sh\" UserPromptSubmit",
+          "timeout": 10
+        }
+      ]
+    }
+  ],
+  "PostToolUse": [
+    {
+      "matcher": "",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "sh \"${DEVIN_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/bin/hook.sh\" PostToolUse",
+          "timeout": 10
+        }
+      ]
+    }
+  ],
+  "PostCompaction": [
+    {
+      "matcher": "",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "sh \"${DEVIN_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/bin/hook.sh\" PostCompaction",
+          "timeout": 10
+        }
+      ]
+    }
+  ],
+  "Stop": [
+    {
+      "matcher": "",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "sh \"${DEVIN_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/bin/hook.sh\" Stop",
+          "timeout": 120
+        }
+      ]
+    }
+  ],
+  "SessionEnd": [
+    {
+      "matcher": "",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "sh \"${DEVIN_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/bin/hook.sh\" SessionEnd",
+          "timeout": 120
+        }
+      ]
+    }
+  ]
+}
