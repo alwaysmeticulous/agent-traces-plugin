@@ -1,5 +1,5 @@
 #!/bin/sh
-# Runs the meticulous-agent-traces uploader binary this plugin release pins,
+# Runs the meticulous-agent-traces uploader binary named by this plugin release,
 # downloading and verifying it on first use.
 #
 # Usage: run-uploader.sh <uploader arguments...>

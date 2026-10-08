@@ -1,18 +1,10 @@
 {
   "name": "meticulous-agent-traces",
-  "version": "1.0.0",
   "description": "Uploads Devin session traces (prompts, tool calls and final messages) to Meticulous.",
-  "author": {
-    "name": "Meticulous",
-    "email": "eng@meticulous.ai"
-  },
+  "author": { "name": "Meticulous", "email": "eng@meticulous.ai" },
   "homepage": "https://meticulous.ai",
   "repository": "https://github.com/alwaysmeticulous/agent-traces-plugin",
   "license": "ISC",
-  "keywords": [
-    "meticulous",
-    "telemetry",
-    "traces"
-  ],
+  "keywords": ["meticulous", "telemetry", "traces"],
   "skills": []
 }

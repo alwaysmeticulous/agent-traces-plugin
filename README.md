@@ -24,7 +24,7 @@ Each hook writes its event to `~/.meticulous/agent-traces/devin/` and returns
 immediately. At the end of each turn, the plugin uploads the session in the
 background with the `meticulous-agent-traces` uploader. The plugin downloads
 the uploader on first use from `snippet.meticulous.ai` and checks it against
-the sha256 checksum pinned in `bin/release.txt` for that release.
+the sha256 checksum recorded in `bin/release.txt`.
 
 Supported on macOS and Linux (x64 and arm64), which need `sh` and `curl` or
 `wget`. On other platforms the hooks do nothing.
@@ -68,7 +68,7 @@ entry:
 ```
 
 **For the whole organization.** An org admin adds the plugin to the
-organization's managed manifest as a required plugin, pinned to a release:
+organization's managed manifest as a required plugin:
 
 ```json
 {
@@ -76,7 +76,6 @@ organization's managed manifest as a required plugin, pinned to a release:
     {
       "source": "github",
       "repo": "alwaysmeticulous/agent-traces-plugin",
-      "ref": "v1.0.0",
       "env": {
         "METICULOUS_AGENT_TRACES_TOKEN": "secret:org:METICULOUS_AGENT_TRACES_TOKEN"
       }
@@ -84,6 +83,9 @@ organization's managed manifest as a required plugin, pinned to a release:
   ]
 }
 ```
+
+Either way, the plugin tracks this repo's default branch, so each session
+picks up the latest release when it starts.
 
 ### 3. Local sessions (Devin CLI and Desktop)
 
