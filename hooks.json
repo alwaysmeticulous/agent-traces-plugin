@@ -5,7 +5,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "sh \"${DEVIN_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/bin/hook.sh\" SessionStart",
+          "command": "sh \"${DEVIN_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/bin/hook.sh\" devin SessionStart",
           "timeout": 10
         }
       ]
@@ -17,7 +17,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "sh \"${DEVIN_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/bin/hook.sh\" UserPromptSubmit",
+          "command": "sh \"${DEVIN_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/bin/hook.sh\" devin UserPromptSubmit",
           "timeout": 10
         }
       ]
@@ -29,7 +29,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "sh \"${DEVIN_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/bin/hook.sh\" PostToolUse",
+          "command": "sh \"${DEVIN_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/bin/hook.sh\" devin PostToolUse",
           "timeout": 10
         }
       ]
@@ -41,7 +41,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "sh \"${DEVIN_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/bin/hook.sh\" PostCompaction",
+          "command": "sh \"${DEVIN_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/bin/hook.sh\" devin PostCompaction",
           "timeout": 10
         }
       ]
@@ -53,7 +53,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "sh \"${DEVIN_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/bin/hook.sh\" Stop",
+          "command": "sh \"${DEVIN_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/bin/hook.sh\" devin Stop",
           "timeout": 120
         }
       ]
@@ -65,7 +65,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "sh \"${DEVIN_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/bin/hook.sh\" SessionEnd",
+          "command": "sh \"${DEVIN_PLUGIN_ROOT:-$CLAUDE_PLUGIN_ROOT}/bin/hook.sh\" devin SessionEnd",
           "timeout": 120
         }
       ]
