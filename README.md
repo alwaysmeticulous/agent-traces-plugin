@@ -24,7 +24,9 @@ The plugin registers [lifecycle hooks](https://docs.devin.ai/cli/extensibility/h
 and records, for each session:
 
 - every prompt you send (`UserPromptSubmit`)
-- every tool call Devin makes, with its input and output (`PostToolUse`)
+- every tool call Devin makes, with its input and output (`PostToolUse`).
+  The environment variables Devin passes to shell commands, which include
+  your Devin secrets, are blanked before anything is uploaded
 - Devin's final message at the end of each turn (`Stop`)
 - context compaction summaries (`PostCompaction`)
 - the project directory, its git remote (with any credentials stripped),
@@ -32,7 +34,10 @@ and records, for each session:
   OS user and time zone
 
 Devin's hooks don't expose the model, token usage, or Devin's messages and
-reasoning within a turn, so traces don't include them.
+reasoning within a turn, so traces don't include them. Meticulous estimates
+each trace's token usage from what it did record, and marks the figures as
+estimates. To also include the message that opens each session, which the
+hooks can miss, connect a Devin service user key on the Agent Traces tab.
 
 Each hook writes its event to `~/.meticulous/agent-traces/devin/` and returns
 immediately. At the end of each turn, the plugin uploads the session in the
@@ -82,6 +87,10 @@ entry:
 
 (`METICULOUS_AGENT_TRACES_ENVIRONMENT` marks these traces as coming from
 Devin's cloud, which Devin doesn't otherwise reveal.)
+
+To upload only a fraction of sessions, add
+`"METICULOUS_AGENT_TRACES_SAMPLE_RATE": "0.05"` (about 5%; any number from 0
+to 1) to the same `env` block. By default every session is uploaded.
 
 **For the whole organization.** An org admin adds the plugin to the
 organization's managed manifest as a required plugin:
@@ -139,9 +148,11 @@ repo's `bin/`) and registers them, alongside any hooks you already have, in:
   downloads the uploader in the background when a session starts.
 - `.cursor/hooks.json`: records each Cursor turn's prompts, responses, tool
   calls and their outputs, and uploads at the end of the turn.
-- `.conductor/settings.toml`: an archive script that uploads every agent's
-  sessions when a Conductor workspace is archived. If you already have an
-  archive script, the command prints the line to add to it.
+- `.conductor/settings.toml`: a setup script that, in cloud workspaces,
+  starts a background loop uploading every agent's sessions each minute
+  (Codex, OpenCode and Pi have no hooks there), and an archive script that
+  uploads them all once more when the workspace is archived. If you already
+  have either script, the command prints the line to add to it.
 
 Pass `--only claude-code,cursor,conductor` (any subset) to limit it. Commit
 the result.
@@ -171,6 +182,12 @@ Set `METICULOUS_AGENT_TRACES_TOKEN` to your ingest token as a secret:
   environment variable.
 - **Conductor**: as a cloud environment variable in your Conductor
   organization's settings, rather than committed `[environment_variables]`.
+
+To upload only a fraction of sessions, also set
+`METICULOUS_AGENT_TRACES_SAMPLE_RATE` to a number from 0 to 1 (for example
+`0.05` for about 5%). Each session is either uploaded in full or not at all,
+and the same session gets the same decision on every machine. By default
+every session is uploaded.
 
 If uploads from a cloud agent don't arrive, it may be stopping background
 processes when a turn ends. Set `METICULOUS_AGENT_TRACES_FOREGROUND_UPLOAD=1`
@@ -203,7 +220,8 @@ all uploads.
 
 - `~/.meticulous/agent-traces/<agent>/last-upload.log` (`devin`,
   `claude-code`, `cursor` or `conductor`) has the output of the most recent
-  upload attempt, including download errors.
+  upload attempt, including download errors; in Conductor cloud workspaces,
+  `conductor/last-poll.log` has the background loop's latest one.
 - `~/.meticulous/agent-traces/agent-traces.log` (`~/Library/Logs/Meticulous/agent-traces.log`
   on macOS) is the uploader's log.
 - `sh <plugin root>/bin/run-uploader.sh status` shows the token in use and

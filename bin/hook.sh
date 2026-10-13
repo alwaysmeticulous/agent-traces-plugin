@@ -5,7 +5,9 @@
 #
 # For agents that keep no usable transcript of their own (Devin, and Cursor's
 # tool outputs), it spools each event's stdin payload for the uploader. At
-# turn and session boundaries it starts an upload in the background.
+# turn and session boundaries it starts an upload in the background. In
+# Conductor cloud workspaces, whose Codex, OpenCode and Pi sessions have no
+# hook, it also keeps a background loop uploading every minute.
 #
 # Copies committed to a repository never update themselves, so they hand over
 # to the newest released copy that run-uploader.sh has cached, if any.
@@ -44,7 +46,9 @@ fi
 spool_dir="$data_dir/$agent/spool"
 system_dir="/Library/Application Support/Meticulous/agent-traces"
 system_config="$system_dir/config.json"
+poller_pid_file="$data_dir/conductor/poller.pid"
 max_payload_bytes=20971520
+poll_interval_seconds=60
 
 main() {
   umask 077
@@ -62,13 +66,20 @@ main() {
       start_upload --agent devin ;;
     # The transcript is written asynchronously and may lag the hook.
     claude-code:Stop | claude-code:SessionEnd)
-      start_upload --agent claude-code --delay-seconds 5 ;;
+      start_upload --agent claude-code --delay-seconds 5
+      ensure_conductor_poller ;;
     # A cloud VM starts empty: download the uploader while the agent works,
     # so the first turn's upload is quick and uses the latest hooks.
     claude-code:SessionStart | cursor:beforeSubmitPrompt)
-      prepare_uploader ;;
+      prepare_uploader
+      ensure_conductor_poller ;;
     cursor:stop)
-      start_upload --agent cursor --delay-seconds 5 ;;
+      start_upload --agent cursor --delay-seconds 5
+      ensure_conductor_poller ;;
+    conductor:setup)
+      ensure_conductor_poller ;;
+    conductor:poll)
+      poll_uploads ;;
     # The workspace is about to go, so upload every agent's sessions now.
     conductor:archive)
       foreground=1
@@ -170,6 +181,60 @@ start_upload() {
   else
     nohup sh "$@" </dev/null >/dev/null 2>"$log_file" &
   fi
+}
+
+# Conductor runs nothing per turn for agents without hooks, and its archive
+# script may be days away, so a loop uploads every agent's sessions each
+# minute. The setup script starts it; processes don't survive the workspace
+# sleeping, so turn boundaries of agents that do have hooks restart it.
+ensure_conductor_poller() {
+  if [ "${CONDUCTOR_IS_LOCAL:-}" != "0" ] || is_poller_running ||
+    [ ! -f "$bin_dir/run-uploader.sh" ] ||
+    [ -z "${METICULOUS_AGENT_TRACES_TOKEN:-}" ]; then
+    return 0
+  fi
+  mkdir -p "$data_dir/conductor" || return 0
+  # Its own session, so it outlives the setup script's process group.
+  if command -v setsid >/dev/null 2>&1; then
+    nohup setsid sh "$bin_dir/hook.sh" conductor poll </dev/null \
+      >/dev/null 2>&1 &
+  else
+    nohup sh "$bin_dir/hook.sh" conductor poll </dev/null >/dev/null 2>&1 &
+  fi
+}
+
+poll_uploads() {
+  if is_poller_running; then
+    return 0
+  fi
+  mkdir -p "$data_dir/conductor" || return 0
+  echo "$$" >"$poller_pid_file"
+  while :; do
+    # Exits at once if a hook's upload holds the lock; the next pass catches up.
+    sh "$bin_dir/run-uploader.sh" upload </dev/null >/dev/null \
+      2>"$data_dir/conductor/last-poll.log"
+    sleep "$poll_interval_seconds"
+  done
+}
+
+is_poller_running() {
+  pid="$(cat "$poller_pid_file" 2>/dev/null)" || return 1
+  [ -n "$pid" ] && [ "$pid" != "$$" ] && kill -0 "$pid" 2>/dev/null || return 1
+  # A workspace sleep kills the poller but keeps this file, and PIDs start
+  # over, so the recorded number may now belong to an unrelated process.
+  case "$(poller_cmdline "$pid")" in
+    *hook.sh\ conductor\ poll*) return 0 ;;
+  esac
+  return 1
+}
+
+# /proc on Linux (Conductor cloud); ps where it isn't, including macOS tests.
+poller_cmdline() {
+  if [ -r "/proc/$1/cmdline" ]; then
+    tr '\000' ' ' <"/proc/$1/cmdline"
+    return
+  fi
+  ps -p "$1" -o args= 2>/dev/null
 }
 
 # Downloads (and checks) the uploader and the latest hooks, once per machine.
